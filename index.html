@@ -1772,6 +1772,24 @@ function selectPage(value, scroll=true){
 }
 $('#pageSelect').onchange=e=>selectPage(e.target.value);
 $('#savePageSelect').onchange=e=>selectPage(e.target.value);
+
+// 미리보기에서 가장 크게 보이는 페이지를 현재 저장 대상으로 삼는다.
+let pageTrackRaf=0;
+function syncPageFromPreviewScroll(){
+  pageTrackRaf=0;
+  const wrap=$('#canvasWrap');
+  const wr=wrap.getBoundingClientRect();
+  let best=-1, bestVisible=0;
+  $$('.page').forEach((page,i)=>{
+    const r=page.getBoundingClientRect();
+    const visible=Math.max(0, Math.min(r.bottom,wr.bottom)-Math.max(r.top,wr.top));
+    if(visible>bestVisible){ bestVisible=visible; best=i; }
+  });
+  if(best>=0 && best!==currentPage) selectPage(best,false);
+}
+$('#canvasWrap').addEventListener('scroll',()=>{
+  if(!pageTrackRaf) pageTrackRaf=requestAnimationFrame(syncPageFromPreviewScroll);
+},{passive:true});
 $('#projectExport').onclick=()=>downloadJSON(projectSnapshot(),'excerpt-project.json');
 $('#projectImport').onclick=()=>$('#projectFile').click();
 $('#projectFile').onchange=async e=>{
